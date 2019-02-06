@@ -1,5 +1,7 @@
 const cursor = document.querySelector("div.cursor");
-const canvasTag = document.querySelector("canvas.in")
+const canvasIn = document.querySelector("canvas.in")
+const canvasOut = document.querySelector("canvas.out")
+let isMouseDown = false;
 
 // when I hold mouse down, make cursor bigger
 const growCursor = function() {
@@ -25,44 +27,95 @@ const setUpCanvas = function (canvas){
     //we're going to set up the context to be whatever mode of canvas we are working in. 3d, 2d, etc?  this is where we sor that out.
     const context = canvas.getContext("2d")
     context.scale(dpi, dpi);
-    context.fillStyle = "red";
+
+if (canvas.classList.contains("in")) {
+    context.fillStyle = "#000000";
+    context.strokeStyle = "#ffffff"
+}
+else {
+    context.fillStyle = "#ffffff";
+    context.strokeStyle = "#000000"
+}
+    context.lineWidth = 60
+    context.lineCap = "round"
+    context.lineJoin = "round"
+    context.shadowBlur = 30
+    context.shadowColor = context.strokeStyle
+
+    context.rect(0, 0, w, h)
+    context.fill();
     
   }
 
-  const startDraw =  function(canvas) {
-      const context = canvas.getContext("2d")
-      context.fillStyle = "yellow"
-  }
-  //let's draw based on three things, canvas, x, and y
-
   const moveDraw = function (canvas, x, y) {
     const context = canvas.getContext("2d")
-    context.rect(x - 20, y - 20, 40, 40)
-    context.fill()
-
+    if (isMouseDown){
+        context.lineTo(x, y);
+        context.stroke();
+    }
   }
 
+  const startDraw =  function(canvas, x, y) {
+      const context = canvas.getContext("2d")
+      context.moveTo(x, y)
+      context.beginPath();
+  }
+  //let's draw based on three things, canvas, x, and y
 // when I let go of click i make cursor smaller
 
 const shrinkCursor = function () {
     cursor.classList.remove("is-down")
 }
 
-document.addEventListener("mousedown", function() {
+setUpCanvas(canvasIn)
+setUpCanvas(canvasOut)
+
+document.addEventListener("mousedown", function(event) {
+    isMouseDown = true;
     growCursor();
-    startDraw(canvasTag);
-    
+    startDraw(canvasIn, event.pageX, event.pageY);
+    startDraw(canvasOut, event.pageX, event.pageY);
+  
 })
 
 document.addEventListener("mouseup", function() {
+    isMouseDown = false; 
     shrinkCursor()
+    
 })
 
 document.addEventListener("mousemove", function (event) {
     console.log(event)
     moveCursor(event.pageX, event.pageY)
-    moveDraw(canvasTag, event.pageX, event.pageY)
+    moveDraw(canvasIn, event.pageX, event.pageY)
+    moveDraw(canvasOut, event.pageX, event.pageY)
 
 })
 
-setUpCanvas(canvasTag)
+// if window is resized page refreshes to contain the image.
+
+window.addEventListener("resize", function (){
+    setUpCanvas(canvasIn)
+    setUpCanvas(canvasOut)
+})
+
+document.addEventListener("touchstart", function (event) {
+    isMouseDown = true
+    growCursor()
+    startDraw(canvasIn, event.pageX, event.pageY)
+    startDraw(canvasOut, event.pageX, event.pageY)
+  })
+  
+  document.addEventListener("touchend", function () {
+    isMouseDown = false
+    shrinkCursor()
+  })
+  
+  document.addEventListener("touchmove", function (event) {
+    console.log(event)
+    // event.pageX -&gt; where we are on the page across
+    // event.pageY -&gt; where we are on the page downwards
+    moveCursor(event.pageX, event.pageY)
+    moveDraw(canvasIn, event.pageX, event.pageY)
+    moveDraw(canvasOut, event.pageX, event.pageY)
+  })
